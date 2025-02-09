@@ -1,11 +1,15 @@
 package employees.manager.module.ui;
 
+import employees.manager.module.dao.EmployeeDao;
+import employees.manager.module.models.Employee;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.Desktop;
 import java.net.URI;
+import java.util.List;
 
 public class MenuPanel extends JPanel {
 
@@ -67,12 +71,48 @@ public class MenuPanel extends JPanel {
 
         settingsButton.addActionListener(e -> JOptionPane.showMessageDialog(this, "Функция еще не реализована.", "Настройки", JOptionPane.INFORMATION_MESSAGE));
 
+//        reportButton.addActionListener(e -> {
+//            JTable table = new JTable(new Object[][]{
+//                    {"1", "Иван Иванов", "HR"},
+//                    {"2", "Петр Петров", "IT"},
+//                    {"3", "Сергей Сергеев", "Finance"}},
+//                    new String[]{"ID", "Имя", "Отдел"});
+//            try {
+//                table.print();
+//            } catch (Exception ex) {
+//                ex.printStackTrace();
+//            }
+//        });
         reportButton.addActionListener(e -> {
-            JTable table = new JTable(new Object[][]{
-                    {"1", "Иван Иванов", "HR"},
-                    {"2", "Петр Петров", "IT"},
-                    {"3", "Сергей Сергеев", "Finance"}},
-                    new String[]{"ID", "Имя", "Отдел"});
+            // Получаем список всех сотрудников
+            EmployeeDao dao = new EmployeeDao();
+            List<Employee> employees = dao.getAllEmployees();
+
+            // Создаем модель таблицы на основе полученных данных
+            Object[][] data = new Object[employees.size()][8]; // 8 колонок для всех полей
+            for (int i = 0; i < employees.size(); i++) {
+                Employee emp = employees.get(i);
+                data[i][0] = emp.getId();
+                data[i][1] = emp.getPersonnelNumber();
+                data[i][2] = emp.getFullName();
+                data[i][3] = emp.getBirthDate();
+                data[i][4] = emp.getEmail();
+                data[i][5] = emp.getPhone();
+                data[i][6] = emp.getEducation();
+                data[i][7] = emp.getCurrentPosition();
+            }
+
+            // Создаем таблицу и отправляем её на печать
+            JTable table = new JTable(data, new String[] {
+                    "ID",
+                    "Табельный номер",
+                    "ФИО",
+                    "Дата рождения",
+                    "Электронная почта",
+                    "Телефон",
+                    "Образование",
+                    "Должность"
+            });
             try {
                 table.print();
             } catch (Exception ex) {
