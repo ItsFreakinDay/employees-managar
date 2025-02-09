@@ -41,15 +41,46 @@ public class PositionDao {
     }
 
     // Метод для добавления новой должности
+//    public boolean addPosition(String name, int departmentId) {
+//        if (isPositionExists(name)) {
+//            return false; // Должность с таким именем уже существует
+//        }
+//        String query = "INSERT INTO Positions (Name, Department_ID) VALUES (?, ?)";
+//        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+//            stmt.setString(1, name);
+//            stmt.setInt(2, departmentId);
+//            return stmt.executeUpdate() > 0;
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//            return false;
+//        }
+//    }
+
+    //giga
     public boolean addPosition(String name, int departmentId) {
         if (isPositionExists(name)) {
             return false; // Должность с таким именем уже существует
         }
-        String query = "INSERT INTO Positions (Name, Department_ID) VALUES (?, ?)";
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+        String insertPositionQuery = "INSERT INTO Positions (Name) VALUES (?)";
+        String insertPositionDepartmentQuery = "INSERT INTO PositionDepartments (Position_ID, Department_ID) VALUES (?, ?)";
+        try (PreparedStatement stmt = connection.prepareStatement(insertPositionQuery, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, name);
-            stmt.setInt(2, departmentId);
-            return stmt.executeUpdate() > 0;
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("Creating user failed, no rows affected.");
+            }
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    int positionId = generatedKeys.getInt(1);
+                    try (PreparedStatement posDeptStmt = connection.prepareStatement(insertPositionDepartmentQuery)) {
+                        posDeptStmt.setInt(1, positionId);
+                        posDeptStmt.setInt(2, departmentId);
+                        return posDeptStmt.executeUpdate() > 0;
+                    }
+                } else {
+                    throw new SQLException("Creating user failed, no ID obtained.");
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -57,16 +88,41 @@ public class PositionDao {
     }
 
     // Метод для обновления должности
+//    public boolean updatePosition(int id, String name, int departmentId) {
+//        if (isPositionExists(name)) {
+//            return false; // Должность с таким именем уже существует
+//        }
+//        String query = "UPDATE Positions SET Name = ?, Department_ID = ? WHERE ID = ?";
+//        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+//            stmt.setString(1, name);
+//            stmt.setInt(2, departmentId);
+//            stmt.setInt(3, id);
+//            return stmt.executeUpdate() > 0;
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//            return false;
+//        }
+//    }
+
+    //giga below
     public boolean updatePosition(int id, String name, int departmentId) {
         if (isPositionExists(name)) {
             return false; // Должность с таким именем уже существует
         }
-        String query = "UPDATE Positions SET Name = ?, Department_ID = ? WHERE ID = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+        String updatePositionQuery = "UPDATE Positions SET Name = ? WHERE ID = ?";
+        String updatePositionDepartmentQuery = "UPDATE PositionDepartments SET Department_ID = ? WHERE Position_ID = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(updatePositionQuery)) {
             stmt.setString(1, name);
-            stmt.setInt(2, departmentId);
-            stmt.setInt(3, id);
-            return stmt.executeUpdate() > 0;
+            stmt.setInt(2, id);
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("Updating user failed, no rows affected.");
+            }
+            try (PreparedStatement posDeptStmt = connection.prepareStatement(updatePositionDepartmentQuery)) {
+                posDeptStmt.setInt(1, departmentId);
+                posDeptStmt.setInt(2, id);
+                return posDeptStmt.executeUpdate() > 0;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
