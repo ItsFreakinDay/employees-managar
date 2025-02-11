@@ -34,7 +34,7 @@ public class Login extends JFrame implements ActionListener {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
 
-        JLabel usernameLabel = new JLabel("Username:");
+        JLabel usernameLabel = new JLabel("Пользователь:");
         gbc.gridx = 0;
         gbc.gridy = 0;
         formPanel.add(usernameLabel, gbc);
@@ -44,7 +44,7 @@ public class Login extends JFrame implements ActionListener {
         gbc.gridy = 0;
         formPanel.add(tusername, gbc);
 
-        JLabel passwordLabel = new JLabel("Password:");
+        JLabel passwordLabel = new JLabel("Пароль:");
         gbc.gridx = 0;
         gbc.gridy = 1;
         formPanel.add(passwordLabel, gbc);
@@ -54,7 +54,7 @@ public class Login extends JFrame implements ActionListener {
         gbc.gridy = 1;
         formPanel.add(tpassword, gbc);
 
-        login = new JButton("LOGIN");
+        login = new JButton("ВОЙТИ");
         login.setBackground(Color.BLACK);
         login.setForeground(Color.WHITE);
         login.addActionListener(this);
@@ -63,7 +63,7 @@ public class Login extends JFrame implements ActionListener {
         gbc.gridwidth = 2;
         formPanel.add(login, gbc);
 
-        back = new JButton("BACK");
+        back = new JButton("ВЫХОД");
         back.setBackground(Color.BLACK);
         back.setForeground(Color.WHITE);
         back.addActionListener(this);
@@ -100,7 +100,7 @@ public class Login extends JFrame implements ActionListener {
                     dispose();
                     new MainApp();
                 } else {
-                    JOptionPane.showMessageDialog(this, "Invalid username or password.", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Неверный пользователь или пароль.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
 
                 statement.close();
