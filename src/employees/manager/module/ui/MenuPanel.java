@@ -12,6 +12,7 @@ import employees.manager.module.models.Employee;
 import javax.swing.*;
 import java.awt.Image;
 import java.awt.*;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URI;
 import java.util.List;
@@ -141,13 +142,26 @@ public class MenuPanel extends JPanel {
         try {
             Document document = new Document(PageSize.A4, 50, 50, 50, 50); // Устанавливаем размеры страницы
 
-            PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream("employee_report.pdf"));
+            String desktopDirectory = System.getProperty("user.home") + "/Desktop/";
+            String outputFileName = "employee_report.pdf";
+
+            File directory = new File(desktopDirectory);
+            if (!directory.exists()) {
+                boolean created = directory.mkdirs();
+                if (!created) {
+                    JOptionPane.showMessageDialog(this, "Не удалось создать директорию на рабочем столе", "Ошибка", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            }
+
+            String fullPath = desktopDirectory + outputFileName;
+            PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(fullPath));
             document.open();
 
             // Путь к файлу шрифта Arial
             String fontFilePath = "/fonts/arialmt.ttf";
 
-            // Загрузите шрифт Arial
+            // Загружаем шрифт Arial
             BaseFont arialBaseFont = BaseFont.createFont(fontFilePath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
             Font font = new Font(arialBaseFont, 12, Font.NORMAL);
 
