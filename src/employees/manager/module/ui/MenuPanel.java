@@ -1,17 +1,24 @@
 package employees.manager.module.ui;
 
+import com.itextpdf.text.Font;
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.BaseFont;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 import employees.manager.module.dao.EmployeeDao;
 import employees.manager.module.models.Employee;
 
 import javax.swing.*;
+import java.awt.Image;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.Desktop;
+import java.io.FileOutputStream;
 import java.net.URI;
 import java.util.List;
 
 public class MenuPanel extends JPanel {
+
+    private JTable table;
 
     public MenuPanel() {
         setLayout(new BorderLayout());
@@ -28,7 +35,7 @@ public class MenuPanel extends JPanel {
         logoLabel.setIcon(scaledIcon);
 
         JLabel wishesLabel = new JLabel("Добро пожаловать! Успехов в работе.");
-        wishesLabel.setFont(new Font("Arial", Font.BOLD, 16));
+
         wishesLabel.setForeground(Color.GRAY);
 
         headerPanel.add(logoLabel);
@@ -43,7 +50,6 @@ public class MenuPanel extends JPanel {
         footerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         JLabel versionLabel = new JLabel("Версия: v. 0.0.1");
-        versionLabel.setFont(new Font("Arial", Font.PLAIN, 12));
         versionLabel.setForeground(Color.DARK_GRAY);
 
         footerPanel.add(versionLabel, BorderLayout.WEST);
@@ -54,71 +60,18 @@ public class MenuPanel extends JPanel {
         centerPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 20));
 
         JButton settingsButton = new JButton("Настройки");
-        JButton reportButton = new JButton("Печать отчета по сотрудникам");
+        JButton reportButton = new JButton("Генерация PDF-отчета");
         JButton projectLinkButton = new JButton("Ссылка на проект");
         JButton refreshButton = new JButton("Обновить данные");
         JButton exportButton = new JButton("Экспорт в Excel");
         JButton helpButton = new JButton("Помощь");
         JButton exitButton = new JButton("Выход");
 
-        settingsButton.setFont(new Font("Arial", Font.PLAIN, 14));
-        reportButton.setFont(new Font("Arial", Font.PLAIN, 14));
-        projectLinkButton.setFont(new Font("Arial", Font.PLAIN, 14));
-        refreshButton.setFont(new Font("Arial", Font.PLAIN, 14));
-        exportButton.setFont(new Font("Arial", Font.PLAIN, 14));
-        helpButton.setFont(new Font("Arial", Font.PLAIN, 14));
-        exitButton.setFont(new Font("Arial", Font.PLAIN, 14));
+
 
         settingsButton.addActionListener(e -> JOptionPane.showMessageDialog(this, "Функция еще не реализована.", "Настройки", JOptionPane.INFORMATION_MESSAGE));
 
-//        reportButton.addActionListener(e -> {
-//            JTable table = new JTable(new Object[][]{
-//                    {"1", "Иван Иванов", "HR"},
-//                    {"2", "Петр Петров", "IT"},
-//                    {"3", "Сергей Сергеев", "Finance"}},
-//                    new String[]{"ID", "Имя", "Отдел"});
-//            try {
-//                table.print();
-//            } catch (Exception ex) {
-//                ex.printStackTrace();
-//            }
-//        });
-        reportButton.addActionListener(e -> {
-            // Получаем список всех сотрудников
-            EmployeeDao dao = new EmployeeDao();
-            List<Employee> employees = dao.getAllEmployees();
-
-            // Создаем модель таблицы на основе полученных данных
-            Object[][] data = new Object[employees.size()][8]; // 8 колонок для всех полей
-            for (int i = 0; i < employees.size(); i++) {
-                Employee emp = employees.get(i);
-                data[i][0] = emp.getId();
-                data[i][1] = emp.getPersonnelNumber();
-                data[i][2] = emp.getFullName();
-                data[i][3] = emp.getBirthDate();
-                data[i][4] = emp.getEmail();
-                data[i][5] = emp.getPhone();
-                data[i][6] = emp.getEducation();
-                data[i][7] = emp.getCurrentPosition();
-            }
-
-            // Создаем таблицу и отправляем её на печать
-            JTable table = new JTable(data, new String[] {
-                    "ID",
-                    "Табельный номер",
-                    "ФИО",
-                    "Дата рождения",
-                    "Электронная почта",
-                    "Телефон",
-                    "Образование",
-                    "Должность"
-            });
-            try {
-                table.print();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        });
+        reportButton.addActionListener(e -> generatePdfReport());
 
         projectLinkButton.addActionListener(e -> {
             try {
@@ -145,5 +98,90 @@ public class MenuPanel extends JPanel {
         centerPanel.add(exitButton);
 
         add(centerPanel, BorderLayout.CENTER);
+
+        // Загрузка данных и создание таблицы
+        loadDataAndCreateTable();
+    }
+
+    private void loadDataAndCreateTable() {
+        // Получаем список всех сотрудников
+        EmployeeDao dao = new EmployeeDao();
+        List<Employee> employees = dao.getAllEmployees();
+
+        // Создаем модель таблицы на основе полученных данных
+        Object[][] data = new Object[employees.size()][8]; // 8 колонок
+        for (int i = 0; i < employees.size(); i++) {
+            Employee emp = employees.get(i);
+            data[i][0] = emp.getId();
+            data[i][1] = emp.getPersonnelNumber();
+            data[i][2] = emp.getFullName();
+            data[i][3] = emp.getBirthDate();
+            data[i][4] = emp.getEmail();
+            data[i][5] = emp.getPhone();
+            data[i][6] = emp.getEducation();
+            data[i][7] = emp.getCurrentPosition();
+        }
+
+        // Создаем таблицу и добавляем ее в панель
+        table = new JTable(data, new String[] {
+                "ID",
+                "Табельный номер",
+                "ФИО",
+                "Дата рождения",
+                "Электронная почта",
+                "Телефон",
+                "Образование",
+                "Должность"
+        });
+//        JScrollPane scrollPane = new JScrollPane(table);
+//        add(scrollPane, BorderLayout.CENTER);
+    }
+
+    private void generatePdfReport() {
+        try {
+            Document document = new Document(PageSize.A4, 50, 50, 50, 50); // Устанавливаем размеры страницы
+
+            PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream("employee_report.pdf"));
+            document.open();
+
+            // Путь к файлу шрифта Arial
+            String fontFilePath = "/fonts/arialmt.ttf";
+
+            // Загрузите шрифт Arial
+            BaseFont arialBaseFont = BaseFont.createFont(fontFilePath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+            Font font = new Font(arialBaseFont, 12, Font.NORMAL);
+
+            // Добавляем заголовок отчета
+            Paragraph title = new Paragraph("Отчет по сотрудникам", font);
+            title.setAlignment(Element.ALIGN_CENTER);
+            document.add(title);
+
+            // Создаем таблицу
+            PdfPTable pdfTable = new PdfPTable(8);
+            pdfTable.setWidthPercentage(100);
+
+            // Заполняем строки таблицы данными из JTable
+            for (int i = 0; i < table.getRowCount(); i++) {
+                for (int j = 0; j < table.getColumnCount(); j++) {
+                    Object value = table.getValueAt(i, j);
+                    if (value != null) {
+                        PdfPCell cell = new PdfPCell(new Phrase(value.toString(), font));
+                        cell.setPadding(5);
+                        pdfTable.addCell(cell);
+                    }
+                }
+            }
+
+            // Добавляем таблицу в документ
+            document.add(pdfTable);
+
+            document.close();
+            writer.close();
+
+            JOptionPane.showMessageDialog(this, "PDF отчет успешно сгенерирован!", "Успех", JOptionPane.INFORMATION_MESSAGE);
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Ошибка при генерации PDF: " + e.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }
